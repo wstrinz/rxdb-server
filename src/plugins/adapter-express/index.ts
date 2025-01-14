@@ -16,11 +16,18 @@ export const RxServerAdapterExpress: RxServerAdapter<Express, Request, Response>
         return app;
     },
     setCors(serverApp, path, cors) {
-        serverApp.use('/' + path + '/*', expressCors({
-            origin: cors,
-            // some legacy browsers (IE11, various SmartTVs) choke on 204
-            optionsSuccessStatus: 200
-        }));
+        const corsOptions = {
+            origin: cors === '*' ?
+                (origin: string | undefined, callback: (err: Error | null, allow?: boolean | string) => void) => {
+                    callback(null, origin || true);
+                } : cors,
+            credentials: true,
+            optionsSuccessStatus: 200,
+            methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+            allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'cache-control']
+        };
+
+        serverApp.use('/' + path + '/*', expressCors(corsOptions));
     },
 
     getRequestBody(req: Request) {
